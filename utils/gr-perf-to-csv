@@ -38,7 +38,7 @@ class MyApp(object):
             exit(1)
 
         from gnuradio.ctrlport.GNURadioControlPortClient import GNURadioControlPortClient
-        GNURadioControlPortClient(args, 'thrift', self.run)
+        GNURadioControlPortClient(host=args[1], port=args[2], rpcmethod='thrift', callback=self.run)
 
     def run(self, client):
         input_name = lambda x: x+"::avg input % full"
@@ -51,7 +51,7 @@ class MyApp(object):
             keyname = propname[1]
             if(blockname not in tmplist):
                 # only take gr_blocks (no hier_block2)
-                if(knobs.has_key(input_name(blockname))):
+                if(input_name(blockname) in knobs):
                     tmplist.append(blockname)
 
         blocks = tmplist
@@ -67,7 +67,9 @@ class MyApp(object):
         time.sleep(60)
 
         ## get work time for all blocks
-        kl = map(lambda x: "%s::total work time" % x, blocks)
+        kl = []
+        for b in blocks:
+            kl += [b + "::total work time", ]
         wrk_knobs = client.getKnobs(kl)
 
         work_times = dict(zip(
